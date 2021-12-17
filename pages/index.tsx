@@ -1,23 +1,14 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import Center from "../components/Center/Center";
 import SideBar from "../components/SideBar/Sidebar";
 
 const Home: NextPage = () => {
   return (
-    <div className="">
-      <Head>
-        <title>Spotify 2 with next 12</title>
-        <meta
-          name="description"
-          content="spotify 2 clone for educational purposes"
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="bg-black h-screen">
+    <div className="bg-black h-screen overflow-hidden ">
+      <main className="flex">
         <SideBar />
-        {/*SideBar */}
-        {/*Center */}
+        <Center />
       </main>
 
       <div>{/*Player */}</div>
