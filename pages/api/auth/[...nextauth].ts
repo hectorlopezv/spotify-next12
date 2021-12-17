@@ -1,12 +1,32 @@
 import NextAuth from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
+import spotifyApi, { LOGIN_URL } from "../../../lib/spotify";
 // import FacebookProvider from "next-auth/providers/facebook";
 // import GithubProvider from "next-auth/providers/github";
 // import GoogleProvider from "next-auth/providers/google";
 // import TwitterProvider from "next-auth/providers/twitter";
 // import EmailProvider from "next-auth/providers/email"
 // import AppleProvider from "next-auth/providers/apple"
+async function refreshAccessToken(token: any) {
+  try {
+    spotifyApi.setAccessToken(token.accessTken);
+    spotifyApi.setRefreshToken(token.refreshToken);
 
+    const { body: refreshedToken } = await spotifyApi.refreshAccessToken();
+
+    const base: number = refreshedToken.expires_in * 1000;
+    return {
+      ...token,
+      accessToken: refreshedToken.access_token,
+      accessTokenExpires: Date.now() + base,
+      refreshedToken: refreshedToken.refresh_token ?? token.refreshToken, // si retorna uno lo mandamos si no dejamos el que estaba
+    };
+  } catch (error) {
+    console.error(error);
+
+    return { ...token, error: "RefreshAccessTokenError" };
+  }
+}
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 export default NextAuth({
@@ -67,7 +87,7 @@ export default NextAuth({
   // The secret should be set to a reasonably long random string.
   // It is used to sign cookies and to sign and encrypt JSON Web Tokens, unless
   // a separate secret is defined explicitly for encrypting the JWT.
-  secret: process.env.SECRET,
+  secret: process.env.JWT_SECRET,
 
   session: {
     // Use JSON Web Tokens for session instead of database sessions.
@@ -87,24 +107,23 @@ export default NextAuth({
   // JSON Web tokens are only used for sessions if the `strategy: 'jwt'` session
   // option is set - or by default if no database is specified.
   // https://next-auth.js.org/configuration/options#jwt
-  jwt: {
-    // A secret to use for key generation (you should set this explicitly)
-    secret: process.env.SECRET,
-    // Set to true to use encryption (default: false)
-    // encryption: true,
-    // You can define your own encode/decode functions for signing and encryption
-    // if you want to override the default behaviour.
-    // encode: async ({ secret, token, maxAge }) => {},
-    // decode: async ({ secret, token, maxAge }) => {},
-  },
-
+  // jwt: {
+  //   // A secret to use for key generation (you should set this explicitly)
+  //   secret: process.env.SECRET,
+  //   // Set to true to use encryption (default: false)
+  //   // encryption: true,
+  //   // You can define your own encode/decode functions for signing and encryption
+  //   // if you want to override the default behaviour.
+  //   // encode: async ({ secret, token, maxAge }) => {},
+  //   // decode: async ({ secret, token, maxAge }) => {},
+  // },
   // You can define custom pages to override the built-in ones. These will be regular Next.js pages
   // so ensure that they are placed outside of the '/api' folder, e.g. signIn: '/auth/mycustom-signin'
   // The routes shown here are the default URLs that will be used when a custom
   // pages is not specified for that route.
   // https://next-auth.js.org/configuration/pages
   pages: {
-    // signIn: '/auth/signin',  // Displays signin buttons
+    signIn: "/login", // Displays signin buttons
     // signOut: '/auth/signout', // Displays form with sign out button
     // error: '/auth/error', // Error code passed in query string as ?error=
     // verifyRequest: '/auth/verify-request', // Used for check email page
@@ -117,13 +136,47 @@ export default NextAuth({
   callbacks: {
     // async signIn({ user, account, profile, email, credentials }) { return true },
     // async redirect({ url, baseUrl }) { return baseUrl },
-    // async session({ session, token, user }) { return session },
-    // async jwt({ token, user, account, profile, isNewUser }) { return token }
+    async session({ session, token, user }) {
+      //session object for the client session
+      //what the user can see and use
+      //@ts-ignore
+      session.user.accessToken = token.accessToken;
+      //@ts-ignore
+      session.user.refreshToken = token.refreshToken;
+      //@ts-ignore
+      session.user.username = token.username;
+
+      return session;
+    },
+    async jwt({ token, user, account, profile, isNewUser }) {
+      //creation of jwt token, and haddling
+      //initial SigIn
+      const tokenAuth: any = token;
+      if (account && user) {
+        return {
+          ...token,
+          accessToken: account.access_token,
+          accessTokenExpires: account.expires_at! * 1000, // we are handling expiry teims in milliseconds hence *1000
+          refreshToken: account.refresh_token,
+          username: account.providerAccountId,
+        };
+      }
+
+      // return previos token if the acces token has not expired yet
+      if (Date.now() < tokenAuth.accessTokenExpires) {
+        console.log("Token is still valid");
+        return token;
+      }
+
+      console.log("Access Token has expired, Refreshing...");
+      // Access token has expired, try to update it
+      return await refreshAccessToken(token);
+    }, //returned jwt token
   },
 
   // Events are useful for logging
-  // https://next-auth.js.org/configuration/events
-  events: {},
+  // // https://next-auth.js.org/configuration/events
+  // events: {},
 
   // Enable debug messages in the console if you are having problems
   debug: false,
