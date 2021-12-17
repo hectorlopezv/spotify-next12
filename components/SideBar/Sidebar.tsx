@@ -35,6 +35,7 @@ const SideBar: FC<props> = () => {
     sm:max-w-[15rem]
     md:max-w-[15rem] 
     p-5
+    pb-36
     flex-grow
     hidden md:inline-flex"
     >

@@ -1,10 +1,14 @@
 import type { GetServerSideProps, NextPage } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
+import { useRecoilState } from "recoil";
 import Center from "../components/Center/Center";
+import Player from "../components/Player/Player";
 import SideBar from "../components/SideBar/Sidebar";
+import { isPlayingState } from "../StoreAtoms/tracksAtoms";
 
 const Home: NextPage = () => {
+  const [isPlaying, setIsPlaying] = useRecoilState(isPlayingState);
   return (
     <div className="bg-black h-screen overflow-hidden ">
       <main className="flex">
@@ -12,7 +16,9 @@ const Home: NextPage = () => {
         <Center />
       </main>
 
-      <div>{/*Player */}</div>
+      <div className="sticky bottom-0">
+        <Player />
+      </div>
     </div>
   );
 };
