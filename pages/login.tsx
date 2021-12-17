@@ -7,6 +7,7 @@ import {
   LiteralUnion,
   signIn,
 } from "next-auth/react";
+import Logo from "../public/images/logo.png";
 
 interface props {
   providers: Record<
@@ -18,10 +19,11 @@ const Login: NextPage<props> = ({ providers }) => {
   return (
     <div className="flex items-center flex-col bg-black min-h-screen w-full justify-center space-y-9">
       <Image
-        src="/images/logoSpotigy.png"
+        src={Logo}
         alt={"spotify Logo"}
         height={200}
         width={200}
+        priority
       />
       {providers !== null &&
         Object.values(providers).map((provider) => (
