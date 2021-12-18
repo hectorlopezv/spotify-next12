@@ -1,5 +1,6 @@
 {
   "name": "spotify2next12",
+  "packageManager": "yarn@3.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",

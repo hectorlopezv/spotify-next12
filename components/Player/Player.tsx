@@ -79,7 +79,7 @@ const Player: FC<props> = () => {
   return (
     <div
       className="h-24 bg-gradient-to-b from-black 
-    to-gray-900 text-white pt-5 text-xs 
+    to-gray-900 text-white pt-5 pb-2 text-xs 
     md:text-base px-2 md:px-8 grid-cols-3 grid
     "
     >
@@ -87,11 +87,11 @@ const Player: FC<props> = () => {
       <div className="flex item-center space-x-4">
         {songInfo?.album?.images?.[0].url && (
           <Image
-            width={50}
-            height={50}
+            width={70}
+            height={30}
             src={songInfo?.album.images?.[0].url}
             alt=""
-            className="hidden md:inline h-10 w-10"
+            className="hidden md:inline h-10 w-10 rounded-full"
           />
         )}
 

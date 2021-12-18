@@ -5,7 +5,13 @@ export async function middleware(req: any) {
   //el PROXY que recibe todo antes del server
   //Client -> MiddleWare -> Server
   const secret = process.env.JWT_SECRET!;
-  const token = await getToken({ req, secret });
+  const token = await getToken({
+    req,
+    secret,
+    secureCookie:
+      process.env.NEXTAUTH_URL?.startsWith("https://") ??
+      !!process.env.VERCEL_URL,
+  });
   const { pathname } = req.nextUrl;
   //Allow the request if the following its true...
   //1) token exits
